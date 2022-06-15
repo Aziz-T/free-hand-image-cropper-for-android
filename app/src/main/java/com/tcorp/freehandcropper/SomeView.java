@@ -13,10 +13,14 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,48 +33,35 @@ public class SomeView extends View implements View.OnTouchListener {
 
     Point mfirstpoint = null;
     boolean bfirstpoint = false;
-
+    int width;
+    int height;
     Point mlastpoint = null;
-
+    LinearLayout line;
     Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
     R.drawable.gallery_12);
     Context mContext;
 
-    public SomeView(Context c) {
+    public SomeView(Context c, LinearLayout line1, int widthOfscreen, int heightOfScreen) {
         super(c);
 
         mContext = c;
         setFocusable(true);
         setFocusableInTouchMode(true);
-
+        line = line1;
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.STROKE);
         paint.setPathEffect(new DashPathEffect(new float[] { 10, 20 }, 0));
         paint.setStrokeWidth(5);
         paint.setColor(Color.WHITE);
-
+        width = widthOfscreen;
+        height = heightOfScreen;
         this.setOnTouchListener(this);
         points = new ArrayList<Point>();
 
         bfirstpoint = false;
     }
 
-    public SomeView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        mContext = context;
-        setFocusable(true);
-        setFocusableInTouchMode(true);
 
-        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(2);
-        paint.setColor(Color.WHITE);
-
-        this.setOnTouchListener(this);
-        points = new ArrayList<Point>();
-        bfirstpoint = false;
-
-    }
 
     public void onDraw(Canvas canvas) {
         canvas.drawBitmap(bitmap, 0, 0, null);
@@ -182,7 +173,45 @@ public class SomeView extends View implements View.OnTouchListener {
         invalidate();
     }
 
-    private void showcropdialog() {
+    public void showcropdialog() {
+
+        ImageView compositeImageView = new ImageView(mContext);
+
+        Bitmap bitmap2 = BitmapFactory.decodeResource(getResources(),
+                R.drawable.gallery_12);
+
+        Bitmap resultingImage = Bitmap.createBitmap(width,
+                height, bitmap2.getConfig());
+
+        Canvas canvas = new Canvas(resultingImage);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+
+        Path path = new Path();
+        for (int i = 0; i < SomeView.points.size(); i++) {
+            path.lineTo(SomeView.points.get(i).x, SomeView.points.get(i).y);
+        }
+        canvas.drawPath(path, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+
+
+        canvas.drawBitmap(bitmap2, 0, 0, paint);
+        compositeImageView.setImageBitmap(resultingImage);
+        line.removeAllViews();
+        line.addView(compositeImageView);
+
+
+//        Intent intent;
+//        intent = new Intent(this.mContext, CropActivity.class);
+//        intent.putExtra("crop", true);
+//        mContext.startActivity(intent);
+
+    }
+
+
+
+    private void showcropdialogs() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
